@@ -30,12 +30,18 @@ module Bot
       EM.connect host, port, ::Bot::Protocol::IRC, self
     end
 
+    def handle_error(protocol, error)
+      $stderr.puts error.message
+      protocol.close_connection
+      EM.stop
+    end
+
     def login(protocol)
       protocol.set_nick @nick
       protocol.set_user 'bot', @real_name
       protocol.join_channel @channel
     end
-    
+
     def run
       EM.run { connect @host, @port }
     end

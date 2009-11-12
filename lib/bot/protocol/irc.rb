@@ -1,8 +1,11 @@
 module Bot
   module Protocol
     module IRC
+      MaxLineLength = 512
+
       def initialize(bot)
         @bot = bot
+        @buffer = BufferedTokenizer.new("\n", MaxLineLength)
       end
 
       # EventMachine::Connection
@@ -12,7 +15,9 @@ module Bot
       end
 
       def receive_data(data)
-        puts "GOT: #{data}"
+        @buffer.extract(data).each {|line| receive_line line.chomp}
+      rescue => error
+        receive_error error
       end
 
       # IRC Stuff
@@ -30,6 +35,14 @@ module Bot
       end
       
       private
+
+      def receive_error(error)
+        @bot.handle_error error
+      end
+
+      def receive_line(line)
+        puts "GOT: #{line}"
+      end
 
       def send_line(line)
         send_data("#{line}\r\n")
