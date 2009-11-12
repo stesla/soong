@@ -32,8 +32,15 @@ module Bot
 
     def handle_error(protocol, error)
       $stderr.puts error.message
+      $stderr.puts error.backtrace.join("\n")
       protocol.close_connection
       EM.stop
+    end
+
+    def handle_message(from, to, text)
+    end
+
+    def handle_notice(from, notice)
     end
 
     def login(protocol)
