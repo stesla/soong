@@ -12,6 +12,15 @@ module Bot
     def highlights
       @highlights ||= Hash.new {|h,k| h[k] = []}
     end
+
+    def private_message(&block)
+      block ||= proc {|source,msg|}
+      private_message_actions << block
+    end
+
+    def private_message_actions
+      @private_message_actions ||= []
+    end
   end
 
   class Base
@@ -37,7 +46,7 @@ module Bot
       EM.stop
     end
 
-    def handle_message(source, text)
+    def handle_channel(source, text)
       highlights.each do |pattern, actions|
         next unless pattern.match text
         actions.each {|action| action.call(source, text)}
@@ -45,6 +54,10 @@ module Bot
     end
 
     def handle_notice(protocol, from, notice)
+    end
+
+    def handle_query(source, text)
+      private_message_actions.each {|action| action.call(source, text)}
     end
 
     def login(protocol)

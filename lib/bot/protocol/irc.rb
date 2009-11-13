@@ -21,18 +21,18 @@ module Bot
 
         def self.create(protocol, line)
           unless COMMAND_REGEXP.match line
-            raise "Malformatted command: #{line}"
+            raise "bad command: #{line}"
           end
           prefix, command, params = $1 || '', $2, $3
-          klass = case command
-                  when 'PRIVMSG'
-                    puts line
-                    PrivateMessage
-                  when 'NOTICE' then Notice
-                  else self
-                  end
+          klass = [
+            Notice,
+            ChannelMessage,
+            QueryMessage,
+            self].detect {|klass| klass.match command, params}
           klass.new(protocol, prefix, command, params)
         end
+
+        def self.match(command, params) true end
 
         def initialize(protocol, prefix, command, params)
           @protocol = protocol
@@ -73,6 +73,10 @@ module Bot
           end
         end
 
+        def self.match(command, params)
+          'PRIVMSG' == command
+        end
+
         attr_reader :to, :text, :source
         def after_initialize
           REGEXP.match params
@@ -82,7 +86,19 @@ module Bot
         end
       end
 
+      class QueryMessage < PrivateMessage
+      end
+
+      class ChannelMessage < PrivateMessage
+        def self.match(command, params)
+          super(command, params) and /^#/.match params
+        end
+      end
+
       class Notice < Message
+        def self.match(command, params)
+          'NOTICE' == command
+        end
       end
 
       MaxLineLength = 512
@@ -134,8 +150,10 @@ module Bot
 
       def receive_command(command)
         case command
-        when PrivateMessage
-          @bot.handle_message command.source, command.text
+        when ChannelMessage
+          @bot.handle_channel command.source, command.text
+        when QueryMessage
+          @bot.handle_query command.source, command.text
         when Notice
           @bot.handle_notice self, command.from, command.text
         end
