@@ -1,6 +1,6 @@
-require 'bot/protocol/source'
+require 'soong/protocol/source'
 
-module Bot
+module Soong
   module Protocol
     class PrivateMessage < Command
       REGEXP = /^(\S+)\s+:(.*)$/

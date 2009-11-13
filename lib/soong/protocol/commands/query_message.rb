@@ -1,6 +1,6 @@
-require 'bot/protocol/commands/private_message'
+require 'soong/protocol/commands/private_message'
 
-module Bot
+module Soong
   module Protocol
     class QueryMessage < PrivateMessage
       concrete

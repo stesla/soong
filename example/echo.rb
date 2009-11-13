@@ -1,9 +1,9 @@
 require File.join(File.dirname(__FILE__), "../vendor/gems/environment")
 $:.unshift File.join(File.dirname(__FILE__), '../lib')
 
-require 'bot'
+require 'soong'
 
-class EchoBot < Bot::Base
+class EchoBot < Soong::Bot
   highlight /foo/ do |source, msg|
     source.puts msg.gsub(/foo/,'bar')
   end

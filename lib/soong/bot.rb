@@ -1,6 +1,6 @@
-require 'bot/protocol'
+require 'soong/protocol'
 
-module Bot
+module Soong
   module DSL
     def highlight(regexp, &block)
       block ||= proc {|source,msg|}
@@ -21,7 +21,7 @@ module Bot
     end
   end
 
-  class Base
+  class Bot
     extend DSL
 
     attr_reader :nick
@@ -35,7 +35,7 @@ module Bot
     end
 
     def connect(host, port)
-      EM.connect host, port, ::Bot::Protocol, self
+      EM.connect host, port, ::Soong::Protocol, self
     end
 
     def handle_error(protocol, error)
@@ -58,7 +58,7 @@ module Bot
 
     def login(protocol)
       protocol.set_nick @nick
-      protocol.set_user 'bot', @real_name
+      protocol.set_user 'soong', @real_name
       protocol.join_channel @channel
     end
 

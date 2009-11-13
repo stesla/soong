@@ -1,4 +1,4 @@
-module Bot
+module Soong
   module Protocol
     class Source
       def initialize(protocol, from, to)

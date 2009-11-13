@@ -1,6 +1,6 @@
-require 'bot/protocol/commands'
+require 'soong/protocol/commands'
 
-module Bot
+module Soong
   module Protocol
     MaxLineLength = 512
 
