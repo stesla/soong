@@ -17,4 +17,4 @@ class EchoBot < Bot::Base
   end
 end
 
-EchoBot.new(*ARGV).activate
+EchoBot.new(*ARGV).run

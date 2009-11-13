@@ -65,7 +65,6 @@ module Bot
     def run
       EM.run { connect @host, @port }
     end
-    alias :activate :run
 
     private
 
