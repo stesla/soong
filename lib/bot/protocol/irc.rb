@@ -19,20 +19,23 @@ module Bot
       class Command
         COMMAND_REGEXP = /^(:\S+\s+)?(\S+)\s+(.*)$/
 
-        def self.create(line)
+        def self.create(protocol, line)
           unless COMMAND_REGEXP.match line
             raise "Malformatted command: #{line}"
           end
           prefix, command, params = $1 || '', $2, $3
           klass = case command
-                  when 'PRIVMSG' then PrivateMessage
+                  when 'PRIVMSG'
+                    puts line
+                    PrivateMessage
                   when 'NOTICE' then Notice
                   else self
                   end
-          klass.new(prefix, command, params)
+          klass.new(protocol, prefix, command, params)
         end
 
-        def initialize(prefix, command, params)
+        def initialize(protocol, prefix, command, params)
+          @protocol = protocol
           @command = command
           @params = params
           @prefix = Prefix.parse(prefix)
@@ -41,7 +44,7 @@ module Bot
 
         protected
 
-        attr_reader :params, :prefix
+        attr_reader :params, :prefix, :protocol
 
         def after_initialize; end
       end
@@ -59,11 +62,23 @@ module Bot
       class PrivateMessage < Message
         REGEXP = /^(\S+)\s+:(.*)$/
 
-        attr_reader :to, :text
+        class Source
+          def initialize(protocol, from, to)
+            @protocol = protocol
+            @reply_to = (to.index('#') == 0) ? to : from
+          end
+
+          def puts(msg)
+            @protocol.private_message @reply_to, msg
+          end
+        end
+
+        attr_reader :to, :text, :source
         def after_initialize
           REGEXP.match params
           @to = $1
           @text = $2
+          @source = Source.new(protocol, from, to)
         end
       end
 
@@ -94,6 +109,10 @@ module Bot
       def join_channel(channel, key='')
         send_line "JOIN #{channel} #{key}"
       end
+
+      def private_message(to, msg)
+        send_line "PRIVMSG #{to} :#{msg}"
+      end
       
       def set_nick(nick)
         send_line "NICK #{nick}"
@@ -110,17 +129,15 @@ module Bot
       end
 
       def receive_line(line)
-        receive_command Command.create(line)
+        receive_command Command.create(self, line)
       end
 
       def receive_command(command)
         case command
         when PrivateMessage
-          @bot.handle_message command.from, command.to, command.text
+          @bot.handle_message command.source, command.text
         when Notice
-          @bot.handle_notice command.from, command.text
-        else
-          p command
+          @bot.handle_notice self, command.from, command.text
         end
       end
 

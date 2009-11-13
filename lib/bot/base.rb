@@ -1,29 +1,29 @@
 module Bot
   module DSL
-    def my_nick
+    private
+
+    attr_reader :nick
+
+    def highlight(regexp, &block)
+      block ||= proc {|source,msg|}
+      highlights[regexp] << block
     end
 
-    def highlight(string)
-    end
-
-    def on_highlight(&block)
+    def highlights
+      @highlights ||= Hash.new {|h,k| h[k] = []}
     end
   end
-  
+
   class Base
-    extend DSL
+    include DSL
 
-    def self.activate(*args)
-      bot = new(*args)
-      bot.run
-    end
-
-    def initialize(host, port, nick, channel)
+    def initialize(host, port, nick, channel, &block)
       @host = host.to_s
       @port = port.to_i
       @nick = nick.to_s
       @channel = channel.to_s
       @real_name = "C-3PO"
+      instance_eval(&block)
     end
 
     def connect(host, port)
@@ -37,10 +37,14 @@ module Bot
       EM.stop
     end
 
-    def handle_message(from, to, text)
+    def handle_message(source, text)
+      highlights.each do |pattern, actions|
+        next unless pattern.match text
+        actions.each {|action| action.call(source, text)}
+      end
     end
 
-    def handle_notice(from, notice)
+    def handle_notice(protocol, from, notice)
     end
 
     def login(protocol)
@@ -52,6 +56,7 @@ module Bot
     def run
       EM.run { connect @host, @port }
     end
+    alias :activate :run
   end
 end
   
