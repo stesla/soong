@@ -1,3 +1,5 @@
+require 'bot/protocol'
+
 module Bot
   module DSL
     private
@@ -52,10 +54,7 @@ module Bot
         actions.each {|action| action.call(source, text)}
       end
     end
-
-    def handle_notice(protocol, from, notice)
-    end
-
+    
     def handle_query(source, text)
       private_message_actions.each {|action| action.call(source, text)}
     end
