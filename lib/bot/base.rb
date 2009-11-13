@@ -36,7 +36,7 @@ module Bot
     end
 
     def connect(host, port)
-      EM.connect host, port, ::Bot::Protocol::IRC, self
+      EM.connect host, port, ::Bot::Protocol, self
     end
 
     def handle_error(protocol, error)

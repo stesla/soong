@@ -1,6 +1,5 @@
 module Bot
   module Protocol
-    module IRC
       class Prefix
         PREFIX_REGEXP = /^:([^!]+)!.*$/
 
@@ -162,6 +161,5 @@ module Bot
       def send_line(line)
         send_data("#{line}\r\n")
       end
-    end
   end
 end

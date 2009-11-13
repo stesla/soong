@@ -5,4 +5,4 @@ require 'rubygems'
 require 'eventmachine'
 
 require 'bot/base'
-require 'bot/protocol/irc'
+require 'bot/protocol'
