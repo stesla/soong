@@ -2,10 +2,6 @@ require 'bot/protocol'
 
 module Bot
   module DSL
-    private
-
-    attr_reader :nick
-
     def highlight(regexp, &block)
       block ||= proc {|source,msg|}
       highlights[regexp] << block
@@ -26,15 +22,16 @@ module Bot
   end
 
   class Base
-    include DSL
+    extend DSL
 
-    def initialize(host, port, nick, channel, &block)
+    attr_reader :nick
+
+    def initialize(host, port, nick, channel)
       @host = host.to_s
       @port = port.to_i
       @nick = nick.to_s
       @channel = channel.to_s
       @real_name = "C-3PO"
-      instance_eval(&block)
     end
 
     def connect(host, port)
@@ -50,11 +47,11 @@ module Bot
 
     def handle_channel(source, text)
       highlights.each do |pattern, actions|
-        next unless pattern.match text
+        next unless highlight_match? pattern, text
         actions.each {|action| action.call(source, text)}
       end
     end
-    
+
     def handle_query(source, text)
       private_message_actions.each {|action| action.call(source, text)}
     end
@@ -69,6 +66,20 @@ module Bot
       EM.run { connect @host, @port }
     end
     alias :activate :run
+
+    private
+
+    def highlight_match?(highlight, text)
+      pattern = (highlight.kind_of? Proc) ? instance_eval(&highlight) : highlight
+      pattern.match text
+    end
+
+    def highlights
+      self.class.highlights
+    end
+
+    def private_message_actions
+      self.class.private_message_actions
+    end
   end
 end
-  
